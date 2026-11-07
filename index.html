@@ -6,6 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>الدوري المدرسي</title>
+<link rel="icon" id="app-favicon" href="https://lh3.googleusercontent.com/d/1U2d-NtchzYk6hdHHDuuBO-si0z0PtuOR=s64">
+<link rel="apple-touch-icon" id="app-apple-icon" href="https://lh3.googleusercontent.com/d/1U2d-NtchzYk6hdHHDuuBO-si0z0PtuOR=s180">
+<meta name="theme-color" content="#061a3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400..800&display=swap" rel="stylesheet">
@@ -1089,6 +1095,12 @@ function tickerRichHTML(value) {
 const num = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
 const pad = n => String(n).padStart(2, '0');
 const safeUrl = u => /^https:\/\//i.test(u || '') ? esc(u) : '';
+const APP_LOGO = 'https://lh3.googleusercontent.com/d/1U2d-NtchzYk6hdHHDuuBO-si0z0PtuOR';
+function setAppIcons(url) {
+  const u = String(url || APP_LOGO), sized = (n) => /googleusercontent\.com\/d\//.test(u) && !/=s\d+/.test(u) ? u + '=s' + n : u;
+  const f = document.getElementById('app-favicon'), a = document.getElementById('app-apple-icon');
+  if (f) f.href = sized(64); if (a) a.href = sized(180);
+}
 const store = {
 get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
 set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
@@ -3304,7 +3316,9 @@ if (activeTheme === 'light') {
 }
 if (['Cairo', 'Tahoma', 'Arial', 'Noto Sans Arabic'].includes(s.font_family)) { document.documentElement.style.setProperty('--f-body', `'${s.font_family}',system-ui,sans-serif`); document.documentElement.style.setProperty('--f-disp', `'${s.font_family}',system-ui,sans-serif`); }
 document.title = s.league_name || 'الدوري المدرسي';
-$('#brand').innerHTML = `<span class="brand-logo">${safeUrl(s.logo) ? `<img src="${safeUrl(s.logo)}" alt="" referrerpolicy="no-referrer">` : icon('ball', 24)}</span><div><h1>${esc(s.league_name || 'الدوري المدرسي')}</h1><small>${esc(s.school_name || '')}</small></div>`;
+const brandLogo = safeUrl(s.logo) ? s.logo : APP_LOGO;
+setAppIcons(brandLogo);
+$('#brand').innerHTML = `<span class="brand-logo">${brandLogo ? `<img src="${esc(brandLogo)}" alt="" referrerpolicy="no-referrer">` : icon('ball', 24)}</span><div><h1>${esc(s.league_name || 'الدوري المدرسي')}</h1><small>${esc(s.school_name || '')}</small></div>`;
 $('#dnav').innerHTML = VIEWS.map(([k, l]) => `<button data-go="${k}" class="${S.view === k ? 'on' : ''}">${l}</button>`).join('');
 $('#bnav').innerHTML = VIEWS.map(([k, l, i]) => `<button data-go="${k}" class="${S.view === k ? 'on' : ''}"><span class="pill">${icon(i, 20)}</span>${l}</button>`).join('');
 const adminTicker = s.announcement ? `<div class="ann"><button class="ann-control" type="button" data-act="ticker-toggle" aria-pressed="${tickerPaused ? 'true' : 'false'}" aria-label="${tickerPaused ? 'تشغيل حركة شريط الأخبار' : 'إيقاف حركة شريط الأخبار'}">${tickerPaused ? '▶ تشغيل' : '⏸ إيقاف'}</button><span class="ann-ticker"><span>${tickerRichHTML(s.announcement)}</span><span aria-hidden="true">${tickerRichHTML(s.announcement)}</span></span></div>` : '';

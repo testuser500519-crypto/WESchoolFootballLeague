@@ -1,0 +1,24 @@
+{
+  "name": "الدوري المدرسي",
+  "short_name": "الدوري",
+  "description": "الموقع الرسمي لدوري مدرسة WE للتكنولوجيا التطبيقية بكفر الشيخ",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#061a3a",
+  "theme_color": "#061a3a",
+  "icons": [
+    {
+      "src": "https://lh3.googleusercontent.com/d/1U2d-NtchzYk6hdHHDuuBO-si0z0PtuOR=s192",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "https://lh3.googleusercontent.com/d/1U2d-NtchzYk6hdHHDuuBO-si0z0PtuOR=s512",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ]
+}
