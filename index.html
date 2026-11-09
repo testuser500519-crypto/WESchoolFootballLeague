@@ -6770,12 +6770,12 @@ const IS_GAS = !!IS_NATIVE_GAS || !!API_URL;
             busyElement.setAttribute("role", "status");
             busyElement.setAttribute("aria-live", "polite");
             busyElement.style.cssText =
-              "position:fixed;z-index:100000;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:11px 16px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:#071a34;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.28);font:700 14px/1.4 Cairo,Tahoma,sans-serif;pointer-events:none;";
+              "position:fixed;z-index:100000;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));display:none;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:11px 16px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:#071a34;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.28);font:700 14px/1.4 Cairo,Tahoma,sans-serif;pointer-events:none;";
             busyElement.innerHTML =
               '<span style="width:17px;height:17px;border:2px solid rgba(255,255,255,.35);border-top-color:#e9b949;border-radius:50%;display:inline-block;animation:leagueBusySpin .8s linear infinite"></span><span data-busy-text></span>';
             const style = document.createElement("style");
             style.textContent =
-              "@keyframes leagueBusySpin{to{transform:rotate(360deg)}}";
+              "@keyframes leagueBusySpin{to{transform:rotate(360deg)}}@media (min-width:860px){#global-busy-indicator{bottom:28px!important}}";
             document.head.appendChild(style);
             document.body.appendChild(busyElement);
           }
@@ -6809,8 +6809,19 @@ const IS_GAS = !!IS_NATIVE_GAS || !!API_URL;
             paintBusy();
           }, 250);
         }
+        // الإجراءات الفعلية فقط (حفظ/حذف/تصويت/نسخ احتياطي...): تظهر لها رسالة التنفيذ ثم رسالة الإتمام.
+        // عمليات القراءة والتحميل والزيارات لا تُظهر أي رسالة.
+        const ACTION_FN_RE = /^(adminSave|adminDelete|adminSwap|adminPause|adminResume|adminGenerate|adminMove|adminReset|adminChange|adminAdd|adminUpdate|adminMark|adminSet|adminPurge|castVote|submitPlayerOpinion|importBackup|exportBackup|exportToDrive|exportJsonToDrive|deleteBackup|restoreFromDrive)/;
+        function announceDone() {
+          const t0 = Date.now();
+          // إن لم تعرض الشاشة رسالة نجاح خاصة بها خلال لحظات نعرض رسالة الإتمام العامة.
+          setTimeout(() => {
+            if ((window.__lastToastAt || 0) < t0) toast("✓ تم تنفيذ الإجراء بنجاح", "", 2600);
+          }, 700);
+        }
         function api(fn, ...args) {
-          const busyId = fn === "recordVisitDevice" || fn === "recordPageVisit" ? null : beginBusy(fn);
+          const isAction = ACTION_FN_RE.test(fn);
+          const busyId = isAction ? beginBusy(fn) : null;
           const request = new Promise((resolve, reject) => {
             if (!IS_GAS) return demoApi(fn, args).then(resolve, reject);
             if (!IS_NATIVE_GAS) {
@@ -6840,9 +6851,14 @@ const IS_GAS = !!IS_NATIVE_GAS || !!API_URL;
               reject(err);
             }
           });
-          return request.finally(() => {
-            if (busyId !== null) endBusy(busyId);
-          });
+          return request
+            .then((res) => {
+              if (isAction) announceDone();
+              return res;
+            })
+            .finally(() => {
+              if (busyId !== null) endBusy(busyId);
+            });
         }
         function classifyVisitDevice() {
           const ua = String(navigator.userAgent || "").toLowerCase();
@@ -13297,6 +13313,7 @@ $("#brand").innerHTML =
         }
         let toastT;
         function toast(msg, kind = "", duration = 3200, action = null) {
+          window.__lastToastAt = Date.now();
           const t = $("#toast"),
             b = $(".toast-action", t);
           $("span", t).textContent = msg;
