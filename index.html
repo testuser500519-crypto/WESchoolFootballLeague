@@ -1397,6 +1397,7 @@ const HAS_GAS_HTTP_API = /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec
 const IS_EXPLICIT_DEMO = new URLSearchParams(location.search).get('demo') === '1';
 const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1', ''].includes(location.hostname);
 const IS_DEMO = !IS_GAS && !HAS_GAS_HTTP_API && (IS_LOCAL_PREVIEW || IS_EXPLICIT_DEMO);
+const BUSY_API_METHODS = new Set(['adminAddUser','adminChangePassword','adminDelete','adminDeleteOpinion','adminDeletePoll','adminDeleteSiteNotification','adminDeleteUser','adminGenerateFixtures','adminGenerateKnockout','adminGenerateWeeklyActivityReport','adminMarkOpinionsRead','adminMoveWeekendFixtures','adminPauseLeague','adminPreviewLeaguePause','adminPurgeOldSiteNotifications','adminResetKnockout','adminResumeLeague','adminSave','adminSaveDisciplineCase','adminSaveLineup','adminSaveOpinionReply','adminSavePoll','adminSaveSettings','adminSaveTeamPenalty','adminSetOpinionStatus','adminSetPollStatus','adminSetupWeeklyActivityReport','adminSwapMatchSchedule','adminUpdateOpinion','adminUpdateUserRole','castPollVote','castVote','deleteBackup','exportBackup','exportJsonToDrive','exportToDrive','importBackup','login','restoreFromDrive','submitPlayerOpinion']);
 let busyCounter = 0;
 let busySequence = 0;
 const busyOperations = new Map();
@@ -1423,7 +1424,7 @@ function paintBusy() {
     busyElement.id = 'global-busy-indicator';
     busyElement.setAttribute('role', 'status');
     busyElement.setAttribute('aria-live', 'polite');
-    busyElement.style.cssText = 'position:fixed;z-index:100000;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:11px 16px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:#071a34;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.28);font:700 14px/1.4 Cairo,Tahoma,sans-serif;pointer-events:none;';
+    busyElement.style.cssText = 'position:fixed;z-index:100000;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:11px 16px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:#071a34;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.28);font:700 14px/1.4 Cairo,Tahoma,sans-serif;pointer-events:none;';
     busyElement.innerHTML = '<span style="width:17px;height:17px;border:2px solid rgba(255,255,255,.35);border-top-color:#e9b949;border-radius:50%;display:inline-block;animation:leagueBusySpin .8s linear infinite"></span><span data-busy-text></span>';
     const style = document.createElement('style');
     style.textContent = '@keyframes leagueBusySpin{to{transform:rotate(360deg)}}';
@@ -1450,7 +1451,7 @@ function endBusy(id) {
   busyHideTimer = setTimeout(() => { busyHideTimer = null; paintBusy(); }, 250);
 }
 function api(fn, ...args) {
-  const busyId = fn === 'recordVisitDevice' ? null : beginBusy(fn);
+  const busyId = BUSY_API_METHODS.has(fn) ? beginBusy(fn) : null;
   const request = new Promise((resolve, reject) => {
     if (IS_GAS) {
       const r = google.script.run
@@ -1564,7 +1565,7 @@ const DEMO = {
 getAllData: () => { const { students, votes, opinions, disciplineCases, ...publicDb } = DB;
     publicDb.players = publicDb.players.map(p => ({ ...p, suspended: demoCaseSuspended(p.id) }));
     publicDb.opinions = (DB.opinions || []).filter(x => x.status === 'approved'); return JSON.stringify({ ...publicDb, ts: Date.now() }); },
-login: (un, pw) => { if (un !== 'yasser' || pw !== '500519') throw new Error('اسم المستخدم أو كلمة السر غير صحيحة'); return 'demo'; },
+login: () => { throw new Error('تسجيل دخول الإدارة غير متاح في المعاينة المحلية.'); },
 adminLogout: () => true,
  getSessionInfo: () => ({ username: 'yasser', role: 'superadmin', role_label: 'المدير العام', permissions: ['*'], is_owner: true, can_view_player_ranking: true, last_activity: new Date().toISOString() }),
 getInternalVisitStats: () => JSON.stringify({ date: new Date().toISOString().slice(0, 10), today: 0, total: 0, deviceTotals: { mobile:0, tablet:0, desktop:0, other:0, unreported:0 }, todayDevices: { mobile:0, tablet:0, desktop:0, other:0, unreported:0 }, days: [] }),
@@ -2824,7 +2825,7 @@ function printCenterAction(action) {
   }
 }
 function viewAdmin() {
-if (!S.token) return `<section class="pg"><h2 class="pt">لوحة الإدارة</h2><form id="loginf" class="login"><p class="muted">أدخل اسم المستخدم وكلمة السر لإدارة الدوري.${IS_GAS ? '' : ' (وضع المعاينة: المستخدم yasser وكلمة السر 500519)'}</p><div class="fld"><label for="un">اسم المستخدم</label><input id="un" type="text" autocomplete="username" required></div><div class="fld"><label for="pw">كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit">دخول</button></form></section>`;
+if (!S.token) return `<section class="pg"><h2 class="pt">لوحة الإدارة</h2><form id="loginf" class="login"><p class="muted">أدخل اسم المستخدم وكلمة السر لإدارة الدوري.</p><div class="fld"><label for="un">اسم المستخدم</label><input id="un" type="text" autocomplete="username" required></div><div class="fld"><label for="pw">كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit">دخول</button></form></section>`;
 if (!S.students) loadStudents();
 if (!S.opinionsAdmin) loadOpinionsAdmin();
 if (!S.disciplineAlerts) loadDisciplineAlerts();
@@ -3657,7 +3658,7 @@ $('#dnav').innerHTML = VIEWS.map(([k, l]) => `<button data-go="${k}" class="${S.
 $('#bnav').innerHTML = VIEWS.map(([k, l, i]) => `<button data-go="${k}" class="${S.view === k ? 'on' : ''}"><span class="pill">${icon(i, 20)}</span>${l}</button>`).join('');
 const adminTicker = s.announcement ? `<div class="ann"><button class="ann-control" type="button" data-act="ticker-toggle" aria-pressed="${tickerPaused ? 'true' : 'false'}" aria-label="${tickerPaused ? 'تشغيل حركة شريط الأخبار' : 'إيقاف حركة شريط الأخبار'}">${tickerPaused ? '▶ تشغيل' : '⏸ إيقاف'}</button><span class="ann-ticker"><span>${tickerRichHTML(s.announcement)}</span><span aria-hidden="true">${tickerRichHTML(s.announcement)}</span></span></div>` : '';
 const resultTicker = resultNoticeHTML();
-$('#ann').innerHTML = adminTicker + resultTicker + (IS_GAS ? '' : '<div class="demo">وضع المعاينة: بيانات تجريبية محلية (المستخدم: yasser، كلمة السر: 500519)</div>');
+$('#ann').innerHTML = adminTicker + resultTicker;
 startNewsTickers();
 requestAnimationFrame(syncHeaderOffset);
 const darkMode = document.documentElement.dataset.theme === 'dark';
