@@ -1391,6 +1391,12 @@ const v = getVotedMatches();
 return v[matchId] && v[matchId][type];
 }
 const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+// ضع هنا رابط نشر Web app الخاص بـ Apps Script وينبغي أن ينتهي بـ /exec.
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbws6OJ1AuKgcwrA6bLr96zCNQB78z04WdFsKjopJgtfhaesxcgghhQNO-aGzaHkN10y/exec';
+const HAS_GAS_HTTP_API = /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(String(GAS_WEB_APP_URL || '').trim());
+const IS_EXPLICIT_DEMO = new URLSearchParams(location.search).get('demo') === '1';
+const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+const IS_DEMO = !IS_GAS && !HAS_GAS_HTTP_API && (IS_LOCAL_PREVIEW || IS_EXPLICIT_DEMO);
 let busyCounter = 0;
 let busySequence = 0;
 const busyOperations = new Map();
@@ -1446,12 +1452,33 @@ function endBusy(id) {
 function api(fn, ...args) {
   const busyId = fn === 'recordVisitDevice' ? null : beginBusy(fn);
   const request = new Promise((resolve, reject) => {
-    if (!IS_GAS) return demoApi(fn, args).then(resolve, reject);
-    const r = google.script.run
-      .withSuccessHandler(resolve)
-      .withFailureHandler(err => reject(new Error(String((err && err.message) || err).replace(/^Error:\s*/, ''))));
-    try { r[fn](...args); }
-    catch (err) { reject(err); }
+    if (IS_GAS) {
+      const r = google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(err => reject(new Error(String((err && err.message) || err).replace(/^Error:\s*/, ''))));
+      try { r[fn](...args); } catch (err) { reject(err); }
+      return;
+    }
+    if (HAS_GAS_HTTP_API) {
+      fetch(String(GAS_WEB_APP_URL).trim(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn, args }),
+        redirect: 'follow'
+      }).then(async response => {
+        let payload;
+        try { payload = await response.json(); }
+        catch (_) { throw new Error('استجابة الخلفية غير صالحة. تأكد من نشر Apps Script كـ Web app وإتاحة الوصول للمستخدمين.'); }
+        if (!response.ok) throw new Error(`تعذر الاتصال بالخلفية (${response.status})`);
+        if (!payload || payload.ok !== true) throw new Error((payload && payload.error) || 'فشل تنفيذ طلب الخلفية');
+        resolve(payload.result);
+      }).catch(err => reject(new Error(err && err.message && err.message !== 'Failed to fetch'
+        ? err.message
+        : 'تعذر الوصول إلى خلفية Apps Script. تحقق من رابط /exec وإعدادات نشر Web app والسماح بالوصول.')));
+      return;
+    }
+    if (IS_DEMO) return demoApi(fn, args).then(resolve, reject);
+    reject(new Error('هذا الموقع غير مربوط بخلفية الدوري بعد. ضع رابط Web app المنتهي بـ /exec في GAS_WEB_APP_URL داخل Index.html.'));
   });
   return request.finally(() => { if (busyId !== null) endBusy(busyId); });
 }
@@ -1464,7 +1491,7 @@ if (/windows|macintosh|linux|cros/.test(ua)) return 'desktop';
 return 'other';
 }
 function reportVisitDeviceCategory() {
-if (!IS_GAS) return;
+if (!IS_GAS && !HAS_GAS_HTTP_API) return;
 api('recordVisitDevice', classifyVisitDevice()).catch(() => {});
 }
 reportVisitDeviceCategory();
@@ -1520,7 +1547,7 @@ ts: Date.now(),
 disciplineCases: []
 };
 }
-const DB = IS_GAS ? null : makeDemo();
+const DB = IS_GAS || HAS_GAS_HTTP_API ? null : (IS_DEMO ? makeDemo() : null);
 const KEY = { Teams: 'teams', Players: 'players', Matches: 'matches', Events: 'events', News: 'news', Votes: 'votes' };
 function demoCaseSuspended(playerId) {
   if (!DB?.disciplineCases) return false;
