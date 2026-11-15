@@ -1320,6 +1320,42 @@ body {
 .home-grid-balanced>.home-layout-block[data-home-block="opinions"]{grid-column:1/-1}
 @media(max-width:759px){.home-grid-balanced>.home-layout-block[data-home-block="opinions"]{grid-column:auto}}
 
+
+/* ===== نظام موحد للمسافات والحشو (Spacing System) =====
+   يُوضع في آخر الستايل ليكون له الأولوية على التعديلات المتفرقة السابقة */
+:root{--sp-card-pad:22px;--sp-gap:18px;--sp-field-gap:16px;--sp-input-y:11px;--sp-input-x:14px}
+@media(max-width:600px){:root{--sp-card-pad:16px;--sp-gap:14px;--sp-field-gap:12px}}
+
+/* الحاويات: حشو داخلي موحد من كل الجهات */
+.tool,.admin-content>.tool,.admin-content .tool,.league-settings-page>.tool,.archive-admin-page>.tool{padding:var(--sp-card-pad);margin:0 0 var(--sp-gap)}
+.tool:last-child{margin-bottom:0}
+.sec,.dash-panel,.stats-panel{padding:var(--sp-card-pad)}
+.color-group{padding:16px;margin-top:var(--sp-gap)}
+
+/* مسافة موحدة بين الحاويات داخل صفحات الإدارة */
+.league-settings-page,.archive-admin-page{display:flex;flex-direction:column;gap:var(--sp-gap)}
+.league-settings-page>.tool,.archive-admin-page>.tool{margin:0}
+.admin-content>.tool{margin-bottom:var(--sp-gap)}
+.exec-grid,.stats-dashboard,.quick-grid{gap:var(--sp-gap)}
+
+/* داخل الحاوية: ترتيب العنوان والنص والنموذج */
+.tool h2,.tool h3,.tool h4{margin:0 0 8px}
+.tool>p,.tool>.hint{margin:4px 0 0;line-height:1.7}
+.tool>form,.tool>.fgrid,.tool>.tw,.tool>.tb,.tool>.actions{margin-top:var(--sp-field-gap)}
+.hint{margin-top:6px;line-height:1.6}
+.tb{margin-bottom:14px}
+.actions{margin-top:20px}
+
+/* الحقول ومربعات الإدخال */
+.fgrid{gap:var(--sp-field-gap);margin-top:var(--sp-field-gap)}
+.fgrid>*,.fld{min-width:0}
+.fld label{margin-bottom:6px}
+input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select,textarea{padding:var(--sp-input-y) var(--sp-input-x);min-height:46px}
+textarea{min-height:96px}
+
+/* النوافذ المنبثقة */
+.sheet{padding:24px}
+@media(max-width:600px){.sheet{padding:18px 16px}}
 </style>
 </head>
 <body>
