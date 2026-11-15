@@ -2190,6 +2190,10 @@ if (gs.length === 2 && n === 4) {
 const A = standings(d, gs[0]), B = standings(d, gs[1]);
 if (A.length >= 2 && B.length >= 2) return [[A[0].team.id, B[1].team.id], [B[0].team.id, A[1].team.id]];
 }
+if (gs.length === 2 && n === 8) {
+const A = standings(d, gs[0]), B = standings(d, gs[1]);
+if (A.length >= 4 && B.length >= 4) return [[A[0].team.id, B[3].team.id], [B[1].team.id, A[2].team.id], [B[0].team.id, A[3].team.id], [A[1].team.id, B[2].team.id]];
+}
 const r = standings(d).map(x => x.team.id);
 const bracket = Math.pow(2, Math.ceil(Math.log(Math.max(2,n)) / Math.LN2));
 let order = [1,2];
@@ -2201,6 +2205,7 @@ return pairs;
 function koSize() {
 const maxN = Math.min(32, S.d.teams.length);
 if (maxN < 3) return 0;
+if (!(S.ksize >= 3 && S.ksize <= maxN)) { const gs = groupsOf(S.d); if (gs.length === 2 && maxN >= 8 && gs.every(g => S.d.teams.filter(t => t.group === g).length >= 4)) return 8; }
 return S.ksize >= 3 && S.ksize <= maxN ? S.ksize : maxN;
 }
 function koNext(size) {
@@ -3513,17 +3518,18 @@ function koToolHTML() {
 const d = S.d, k = koMatches(d), fmt=String(d.settings.knockout_format||''), started = allKnockoutMatches(d).length>0;
 const maxN = Math.min(32, d.teams.length), sz = Number(d.settings.knockout_size)||koSize();
 let body;
-if (!started && !fmt) body = '<p class="hint" style="font-size:14px">ابدأ من نموذج «إعدادات الدوري والجداول» أعلاه لاختيار نظام البطولة وإنشاء الدور الأول.</p>';
+if (!started && !fmt && !d.matches.some(m => m.stage === 'league' || m.stage === 'group')) body = '<p class="hint" style="font-size:14px">ابدأ من نموذج «إعدادات الدوري والجداول» أعلاه لاختيار نظام البطولة وإنشاء الدور الأول.</p>';
 else if (!started && maxN < 3) body = '<p class="hint" style="font-size:14px">تحتاج 3 فرق على الأقل لبدء الأدوار الإقصائية.</p>';
 else {
 const plan = koNext(sz);
 if (!plan.steps) body = `<p class="hint" style="font-size:14px;margin-top:8px">${esc(plan.msg)}</p>`;
 else {
-const G = [{ k: 'start', l: 'تاريخ المباريات', t: 'date', req: 1 }, { k: 'time', l: 'وقت أول مباراة', t: 'time', def: '12:00' }, { k: 'slot', l: 'الفاصل بين المباريات (دقيقة)', t: 'number', def: 60 }, { k: 'venue', l: 'الملعب', def: 'ملعب المدرسة' }];
+const G = [{ k: 'start', l: 'التاريخ العام (للمباريات التي بلا تاريخ خاص)', t: 'date' }, { k: 'time', l: 'وقت أول مباراة', t: 'time', def: '12:00' }, { k: 'slot', l: 'الفاصل بين المباريات (دقيقة)', t: 'number', def: 60 }, { k: 'venue', l: 'الملعب', def: 'ملعب المدرسة' }];
 let opts = ''; for (let n = maxN; n >= 3; n--) { const by = Math.pow(2,Math.ceil(Math.log(n)/Math.LN2))-n; opts += `<option value="${n}"${n === sz ? ' selected' : ''}>${n} فريق${by ? ` (إعفاء ${by})` : ''}</option>`; }
 const sel = !started ? `<div class="fld"><label for="k_size">عدد الفرق المتأهلة</label><select id="k_size">${opts}</select></div>` : '';
 const list = plan.steps.map(s => `<li><b>${STAGE[s.stage]}:</b> ${s.pairs.map(p => p[1] ? `${esc(tname(p[0]))} × ${esc(tname(p[1]))}` : `${esc(tname(p[0]))} (إعفاء)`).join(' ، ')}</li>`).join('');
-body = `<ul class="plan">${list}</ul><form id="kof"><div class="fgrid">${sel}${G.map(f => fieldHTML(f, undefined, 'k_')).join('')}</div><div class="actions"><button class="btn yellow" type="submit">${plan.label}</button></div></form>`;
+const perMatch = plan.steps.map(s => s.pairs.map((p, i) => p[1] ? `<div class="fld"><label>${esc(STAGE[s.stage])}: ${esc(tname(p[0]))} × ${esc(tname(p[1]))}</label><div style="display:flex;gap:8px"><input type="date" id="k_d_${s.stage}_${i}" aria-label="تاريخ المباراة"><input type="time" id="k_t_${s.stage}_${i}" aria-label="وقت المباراة"></div></div>` : '').join('')).join('');
+body = `<ul class="plan">${list}</ul><form id="kof"><div class="fgrid">${sel}${G.map(f => fieldHTML(f, undefined, 'k_')).join('')}</div><h4 style="margin:14px 0 6px">موعد كل مباراة (اختياري)</h4><p class="hint">حدد تاريخًا ووقتًا لكل مباراة على حدة. اترك التاريخ فارغًا لتستخدم المباراة التاريخ العام، واترك الوقت فارغًا ليُحسب من وقت أول مباراة والفاصل. الجمعة والسبت والإجازات تُنقل لأقرب يوم متاح.</p><div class="fgrid">${perMatch}</div><div class="actions"><button class="btn yellow" type="submit">${plan.label}</button></div></form>`;
 }
 }
 const reset = started ? '<div class="actions"><button class="btn danger small" type="button" data-act="koreset">حذف الأدوار الإقصائية وإعادة البدء</button></div>' : '';
@@ -4180,11 +4186,15 @@ S.atab = 'matches'; await refresh(); toast(`تم إنشاء ${n} مباراة${o
 }
 if (id === 'archiveSeasonForm') { const current=String(S.d.settings.league_name||'الدوري الحالي'); const confirmText=$('#archive_confirm',f).value.trim(); if(confirmText!==current) throw new Error('اسم الدوري غير مطابق'); if(!await confirmBox(`سيتم حفظ أرشيف خاص للموسم الحالي ثم مسح الفرق واللاعبين والمباريات والأحداث والأخبار والتصويت والعقوبات والآراء، مع الإبقاء على الطلاب والمسؤولين. بدء ${$('#archive_new_season',f).value.trim()}؟`,'أرشفة وبدء الموسم')) throw new Error('تم الإلغاء'); const raw=await adminCall('adminArchiveAndStartNewSeason',{new_name:$('#archive_new_name',f).value.trim(),new_season:$('#archive_new_season',f).value.trim(),confirm_text:confirmText}); const result=typeof raw==='string'?JSON.parse(raw):raw; await refresh(); S.atab='league'; render(); toast(`تم حفظ الأرشيف ${result.name} في مجلد Drive: ${result.folderName}، وبدء الموسم ${result.season}`); if(result.url) window.open(result.url,'_blank','noopener'); }
 if (id === 'kof') {
-const o = readFields([{ k: 'start', l: 'تاريخ المباريات', req: 1 }, { k: 'time' }, { k: 'slot' }, { k: 'venue' }], f, 'k_');
+const o = readFields([{ k: 'start' }, { k: 'time' }, { k: 'slot' }, { k: 'venue' }], f, 'k_');
 const plan = koNext(koSize());
 if (!plan.steps) throw new Error(plan.msg || 'غير جاهز بعد');
 let n = 0, tm = o.time || '12:00'; const slot = Number(o.slot) || 60;
-for (const st of plan.steps) { n += await adminCall('adminGenerateKnockout', { stage: st.stage, pairs: st.pairs, start: o.start, time: tm, slot, venue: o.venue }); tm = addMin(tm, slot); }
+for (const st of plan.steps) {
+const schedule = st.pairs.map((p, i) => ({ date: $('#k_d_' + st.stage + '_' + i, f)?.value || '', time: $('#k_t_' + st.stage + '_' + i, f)?.value || '' }));
+st.pairs.forEach((p, i) => { if (p[1] && !schedule[i].date && !o.start) throw new Error('حدد تاريخ كل مباراة أو التاريخ العام'); });
+n += await adminCall('adminGenerateKnockout', { stage: st.stage, pairs: st.pairs, schedule, start: o.start || '', time: tm, slot, venue: o.venue }); tm = addMin(tm, slot);
+}
 S.atab = 'matches'; await refresh(); toast(`تم إنشاء ${n} مباراة`);
 }
 if (id === 'pwf') {
