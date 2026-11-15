@@ -3585,10 +3585,19 @@ const requestedDate = data.status === 'cancelled' && data.replay_date ? data.rep
 const previousDate = rec ? (rec.status === 'cancelled' && rec.replay_date ? rec.replay_date : rec.date) : '';
 const scheduleEdited = sheet === 'Matches' && !!rec && (String(requestedDate || '') !== String(previousDate || '') || String(data.time || '') !== String(rec.time || ''));
 const confirmedDate = saved?.status === 'cancelled' && saved?.replay_date ? saved.replay_date : saved?.date;
-closeModal(); await refresh();
+// حدّث نسخة الواجهة من رد الخلفية قبل إعادة التحميل، حتى يظهر الموعد فورًا.
+if (sheet === 'Matches' && saved?.id && S.d) {
+  const updatedMatches = S.d.matches.map(x => String(x.id) === String(saved.id) ? { ...x, ...saved } : x);
+  S.d = prep({ ...S.d, matches: updatedMatches });
+}
+closeModal();
+render();
+await refresh();
 const returnedScheduleDiffers = String(confirmedDate || '') !== String(requestedDate || '') || String(saved?.time || '') !== String(data.time || '');
-const scheduleMessage = scheduleEdited ? `الموعد المحفوظ: ${confirmedDate || 'غير محدد'}${saved?.time ? ` — ${saved.time}` : ''}${returnedScheduleDiffers ? ' (الموعد المعاد يختلف عن المدخل؛ تحقق منه)' : ''}${saved?.rescheduled_count ? ` — تم ترحيل ${saved.rescheduled_count} مباراة` : ''}` : (saved?.rescheduled_count ? `تم الحفظ وترحيل ${saved.rescheduled_count} مباراة تلقائيًا` : 'تم الحفظ');
-toast(scheduleMessage);
+const scheduleMessage = scheduleEdited
+  ? `تم تعديل موعد المباراة إلى ${confirmedDate || 'غير محدد'}${saved?.time ? ` — ${saved.time}` : ''}${returnedScheduleDiffers ? ' (الموعد المعتمد يختلف عن المدخل)' : ''}${saved?.rescheduled_count ? ` — تم ترحيل ${saved.rescheduled_count} مباراة` : ''}`
+  : (saved?.rescheduled_count ? `تم الحفظ وترحيل ${saved.rescheduled_count} مباراة تلقائيًا` : 'تم الحفظ');
+toast(scheduleMessage, '', 6500);
 } catch (err) { toast(err.message, 'err'); btn.disabled = false; }
 });
 }
