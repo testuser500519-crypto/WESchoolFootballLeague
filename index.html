@@ -1356,6 +1356,15 @@ textarea{min-height:96px}
 /* النوافذ المنبثقة */
 .sheet{padding:24px}
 @media(max-width:600px){.sheet{padding:18px 16px}}
+.login-page{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 260px)}
+.login-card{width:min(100%,420px);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 26px 26px;box-shadow:0 20px 50px rgba(0,0,0,.18);text-align:center}
+.login-badge{width:60px;height:60px;margin:0 auto 10px;display:grid;place-items:center;font-size:28px;border-radius:50%;background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.login-card h2{font:700 26px/1.2 var(--f-disp);margin:0 0 4px}
+.login-card .login{max-width:none;margin-top:20px;text-align:start;gap:16px}
+.login-card .fld input{width:100%;min-height:46px}
+.pw-wrap{position:relative}.pw-wrap input{padding-inline-end:78px}
+.pw-toggle{position:absolute;inset-block:6px;inset-inline-end:6px;border:0;border-radius:9px;padding:0 12px;background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;font:600 13px var(--f-body);cursor:pointer}
+.login-card .btn.primary{width:100%;min-height:46px;font-size:16px}
 </style>
 </head>
 <body>
@@ -2762,6 +2771,12 @@ function restoreRichSelection(area) { const range=richSelections.get(area); if (
 function execRichCommand(wrapper, command, value = null) { const area=wrapper && $('[data-rich-content]',wrapper); if (!area) return; restoreRichSelection(area); try { document.execCommand('styleWithCSS', false, true); document.execCommand(command, false, value); } catch (e) {} syncRichEditor(area); }
 document.addEventListener('selectionchange', () => { const selection=window.getSelection(); if (!selection || !selection.rangeCount) return; document.querySelectorAll('[data-rich-content]').forEach(area => { if (area.contains(selection.anchorNode) && area.contains(selection.focusNode)) richSelections.set(area, selection.getRangeAt(0).cloneRange()); }); });
 document.addEventListener('mousedown', e => { if (e.target.closest('.rich-editor-toolbar button')) e.preventDefault(); });
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act="toggle-pw"]'); if (!t) return;
+  const i = $('#pw'); if (!i) return;
+  const show = i.type === 'password'; i.type = show ? 'text' : 'password';
+  t.textContent = show ? 'إخفاء' : 'إظهار'; t.setAttribute('aria-pressed', String(show)); t.setAttribute('aria-label', show ? 'إخفاء كلمة السر' : 'إظهار كلمة السر'); i.focus();
+});
 document.addEventListener('click', e => { const button=e.target.closest('[data-rich-command]'); if (!button) return; const value=button.dataset.richValue, command=button.dataset.richCommand; execRichCommand(button.closest('[data-rich-editor]'), command, command === 'formatBlock' ? `<${value}>` : value || null); });
 document.addEventListener('input', e => { const area=e.target.closest('[data-rich-content]'); if (area) syncRichEditor(area); });
 document.addEventListener('input', e => { const range=e.target.closest('[data-range-output]'); if (!range) return; const output=$('#'+range.dataset.rangeOutput); if (output) output.textContent=`${Number(range.value).toFixed(1)}×`; if (range.id === 's_ticker_speed') startNewsTickers(); });
@@ -2978,7 +2993,7 @@ function printCenterAction(action) {
   }
 }
 function viewAdmin() {
-if (!S.token) return `<section class="pg"><h2 class="pt">لوحة الإدارة</h2><form id="loginf" class="login"><p class="muted">أدخل اسم المستخدم وكلمة السر لإدارة الدوري.</p><div class="fld"><label for="un">اسم المستخدم</label><input id="un" type="text" autocomplete="username" required></div><div class="fld"><label for="pw">كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required></div><button class="btn primary" type="submit">دخول</button></form></section>`;
+if (!S.token) return `<section class="pg login-page"><div class="login-card"><div class="login-badge" aria-hidden="true">🔐</div><h2>لوحة الإدارة</h2><p class="muted">سجّل دخولك لإدارة الدوري.</p><form id="loginf" class="login"><div class="fld"><label for="un">اسم المستخدم</label><input id="un" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" required></div><div class="fld"><label for="pw">كلمة السر</label><div class="pw-wrap"><input id="pw" type="password" autocomplete="current-password" required><button type="button" class="pw-toggle" data-act="toggle-pw" aria-pressed="false" aria-label="إظهار كلمة السر">إظهار</button></div></div><button class="btn primary" type="submit">دخول</button></form></div></section>`;
 if (!S.students) loadStudents();
 if (!S.opinionsAdmin) loadOpinionsAdmin();
 if (!S.disciplineAlerts) loadDisciplineAlerts();
@@ -4194,7 +4209,7 @@ e.preventDefault(); const btn = $('button[type=submit]', f); btn.disabled = true
 try {
 if (id === 'pollVoteForm') { await submitPublicPollVote(f); return; }
 if (id === 'pollForm') { const rawOptions=$('#pollOptions',f).value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean); if(rawOptions.length<2||rawOptions.length>10) throw new Error('أدخل من خيارين إلى 10 خيارات، كل خيار في سطر مستقل'); const record={id:f.dataset.pollId||'',question:$('#pollQuestion',f).value.trim(),description:$('#pollDescription',f).value.trim(),options:rawOptions.map((text,i)=>({id:(S.pollsAdmin||[]).find(p=>String(p.id)===String(f.dataset.pollId))?.options?.[i]?.id||'',text})),status:$('#pollStatus',f).value,show_results:$('#pollShowResults',f).checked?'TRUE':'FALSE',start_at:$('#pollStart',f).value,end_at:$('#pollEnd',f).value}; await adminCall('adminSavePoll',record); closeModal(); S.pollResult=null; await loadPollsAdmin(); await loadPublicPolls(); toast('تم حفظ الاستطلاع'); return; }
-if (id === 'loginf') { S.token = await api('login', $('#un').value.trim(), $('#pw').value); store.sset('tok', S.token); try { S.currentUser = await adminCall('getSessionInfo'); } catch (_) { S.currentUser = { username: $('#un').value.trim(), role_label: 'المدير العام', permissions: ['*'] }; } S.atab = canUI('reports') ? 'discipline' : canUI('discipline') ? 'discipline_cases' : 'matches'; S.students = null; render(); toast('أهلًا بك في لوحة الإدارة'); }
+if (id === 'loginf') { const typedUser = $('#un').value.trim(); S.token = await api('login', typedUser, $('#pw').value); store.sset('tok', S.token); try { S.currentUser = await adminCall('getSessionInfo'); } catch (_) { S.currentUser = { username: $('#un').value.trim(), role_label: 'المدير العام', permissions: ['*'] }; } S.atab = canUI('reports') ? 'discipline' : canUI('discipline') ? 'discipline_cases' : 'matches'; S.students = null; render(); toast('أهلًا ' + ((S.currentUser && S.currentUser.username) || typedUser) + ' 👋 تم تسجيل دخولك بنجاح'); }
 if (id === 'userf') { await adminCall('adminAddUser', $('#u_name').value.trim(), $('#u_pass').value, $('#u_role')?.value || 'viewer'); f.reset(); await loadUsers(); toast('تمت إضافة المسؤول'); }
 if (id === 'disciplineCaseForm') {
   const record={ id:$('#dc_id',f).value, player_id:$('#dc_player_id',f).value, match_id:$('#dc_match_id',f).value, case_date:$('#dc_case_date',f).value, violation:$('#dc_violation',f).value.trim(), rule_reference:$('#dc_rule_reference',f).value.trim(), sanction_type:$('#dc_sanction_type',f).value, suspension_matches:$('#dc_suspension_matches',f).value, start_date:$('#dc_start_date',f).value, end_date:$('#dc_end_date',f).value, decision:$('#dc_decision',f).value.trim(), status:$('#dc_status',f).value, appeal_note:$('#dc_appeal_note',f).value.trim(), notes:$('#dc_notes',f).value.trim() };
