@@ -91,7 +91,7 @@ body{scroll-padding-top:var(--header-h,64px);}
 .hero{position:relative;margin:16px 0 4px;border-radius:var(--r-lg);overflow:hidden;color:#fff;padding:36px 16px 40px;
 background:#1c7a34;
 background:repeating-linear-gradient(90deg,#1c7a34 0 64px,color-mix(in srgb,#1c7a34 88%,#eaffea) 64px 128px)}
-.hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' fill='none' stroke='%23e2b23c' stroke-opacity='.42' stroke-width='2'%3E%3Ccircle cx='200' cy='120' r='50'/%3E%3Cpath d='M200 0v240'/%3E%3Crect x='-2' y='68' width='58' height='104'/%3E%3Crect x='344' y='68' width='58' height='104'/%3E%3Crect x='-2' y='95' width='22' height='50'/%3E%3Crect x='380' y='95' width='22' height='50'/%3E%3C/svg%3E") center/contain no-repeat}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3CradialGradient id='f' cx='.5' cy='.5' r='.5'%3E%3Cstop offset='0' stop-color='%23fff4c4' stop-opacity='.8'/%3E%3Cstop offset='.4' stop-color='%23fff4c4' stop-opacity='.22'/%3E%3Cstop offset='1' stop-color='%23fff4c4' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='c' cx='.5' cy='.5' r='.5'%3E%3Cstop offset='0' stop-color='%23e6fff0' stop-opacity='.3'/%3E%3Cstop offset='1' stop-color='%23e6fff0' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='v' cx='.5' cy='.5' r='.78'%3E%3Cstop offset='.5' stop-color='%23000' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000' stop-opacity='.6'/%3E%3C/radialGradient%3E%3CradialGradient id='b' cx='.35' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23b9c4bd'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='400' height='240' fill='%230a3a27'/%3E%3Cg fill='%230e4a33'%3E%3Crect x='50' width='50' height='240'/%3E%3Crect x='150' width='50' height='240'/%3E%3Crect x='250' width='50' height='240'/%3E%3Crect x='350' width='50' height='240'/%3E%3C/g%3E%3Crect width='400' height='240' fill='url(%23c)'/%3E%3Cg fill='none' stroke='%23eafff2' stroke-opacity='.6' stroke-width='1.5'%3E%3Crect x='12' y='12' width='376' height='216'/%3E%3Cpath d='M200 12v216'/%3E%3Ccircle cx='200' cy='120' r='34'/%3E%3Crect x='12' y='62' width='54' height='116'/%3E%3Crect x='334' y='62' width='54' height='116'/%3E%3Crect x='12' y='92' width='22' height='56'/%3E%3Crect x='366' y='92' width='22' height='56'/%3E%3Cpath d='M66 102a30 30 0 0 1 0 36M334 102a30 30 0 0 0 0 36'/%3E%3C/g%3E%3Cg fill='url(%23f)'%3E%3Ccircle cx='6' cy='4' r='150'/%3E%3Ccircle cx='394' cy='4' r='150'/%3E%3Ccircle cx='6' cy='236' r='120' opacity='.7'/%3E%3Ccircle cx='394' cy='236' r='120' opacity='.7'/%3E%3C/g%3E%3Cg fill='%23fffbe6'%3E%3Ccircle cx='6' cy='4' r='3'/%3E%3Ccircle cx='394' cy='4' r='3'/%3E%3Ccircle cx='6' cy='236' r='3'/%3E%3Ccircle cx='394' cy='236' r='3'/%3E%3C/g%3E%3Crect width='400' height='240' fill='url(%23v)'/%3E%3Crect width='400' height='240' fill='%2302130c' opacity='.18'/%3E%3Cellipse cx='200' cy='127.6' rx='8.4' ry='2.4' fill='%23000' opacity='.35'/%3E%3Ccircle cx='200' cy='120' r='19.2' fill='url(%23c)'/%3E%3Ccircle cx='200' cy='120' r='8' fill='url(%23b)' stroke='%231b1b1b' stroke-width='.7'/%3E%3Cpolygon points='200.0,116.6 203.2,119.0 202.0,122.7 198.0,122.7 196.8,119.0' fill='%231b1b1b'/%3E%3C/svg%3E") center/cover no-repeat}
 .hero>*{position:relative}
 [data-theme=dark] .hero{box-shadow:0 0 0 1px var(--line)}
 .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -372,7 +372,7 @@ button.bm:hover{border-color:var(--text)}
 .pitch{position:relative;display:flex;flex-direction:column;justify-content:space-around;aspect-ratio:3/3.75;max-width:470px;margin:14px auto 6px;padding:16px 4px;border-radius:18px;color:#fff;overflow:hidden;
 background:#1c7a34;background:repeating-linear-gradient(0deg,#1c7a34 0 46px,color-mix(in srgb,#1c7a34 88%,#eaffea) 46px 92px);
 box-shadow:inset 0 0 0 2px rgba(255,255,255,.05),0 10px 28px rgba(10,40,20,.28)}
-.pitch::before{content:"";position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250' fill='none' stroke='%23e2b23c' stroke-opacity='.4' stroke-width='1.4' preserveAspectRatio='none'%3E%3Crect x='6' y='6' width='188' height='238'/%3E%3Cpath d='M6 125h188'/%3E%3Ccircle cx='100' cy='125' r='24'/%3E%3Crect x='55' y='6' width='90' height='38'/%3E%3Crect x='80' y='6' width='40' height='15'/%3E%3Crect x='55' y='206' width='90' height='38'/%3E%3Crect x='80' y='229' width='40' height='15'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.pitch::before{content:"";position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 250' preserveAspectRatio='none'%3E%3Cdefs%3E%3CradialGradient id='f' cx='.5' cy='.5' r='.5'%3E%3Cstop offset='0' stop-color='%23fff4c4' stop-opacity='.8'/%3E%3Cstop offset='.4' stop-color='%23fff4c4' stop-opacity='.22'/%3E%3Cstop offset='1' stop-color='%23fff4c4' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='c' cx='.5' cy='.5' r='.5'%3E%3Cstop offset='0' stop-color='%23e6fff0' stop-opacity='.3'/%3E%3Cstop offset='1' stop-color='%23e6fff0' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='v' cx='.5' cy='.5' r='.78'%3E%3Cstop offset='.5' stop-color='%23000' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000' stop-opacity='.6'/%3E%3C/radialGradient%3E%3CradialGradient id='b' cx='.35' cy='.3' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23b9c4bd'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='200' height='250' fill='%230d4430'/%3E%3Cg fill='%2311553a'%3E%3Crect y='25' width='200' height='25'/%3E%3Crect y='75' width='200' height='25'/%3E%3Crect y='125' width='200' height='25'/%3E%3Crect y='175' width='200' height='25'/%3E%3Crect y='225' width='200' height='25'/%3E%3C/g%3E%3Crect width='200' height='250' fill='url(%23c)'/%3E%3Cg fill='none' stroke='%23eafff2' stroke-opacity='.6' stroke-width='1.5'%3E%3Crect x='8' y='8' width='184' height='234'/%3E%3Cpath d='M8 125h184'/%3E%3Ccircle cx='100' cy='125' r='26'/%3E%3Crect x='46' y='8' width='108' height='44'/%3E%3Crect x='46' y='198' width='108' height='44'/%3E%3Crect x='76' y='8' width='48' height='17'/%3E%3Crect x='76' y='225' width='48' height='17'/%3E%3Cpath d='M76 52a26 26 0 0 0 48 0M76 198a26 26 0 0 1 48 0'/%3E%3C/g%3E%3Cg fill='url(%23f)'%3E%3Ccircle cx='4' cy='3' r='95'/%3E%3Ccircle cx='196' cy='3' r='95'/%3E%3Ccircle cx='4' cy='247' r='80' opacity='.7'/%3E%3Ccircle cx='196' cy='247' r='80' opacity='.7'/%3E%3C/g%3E%3Crect width='200' height='250' fill='url(%23v)'/%3E%3Cellipse cx='100' cy='130.7' rx='6.300000000000001' ry='1.7999999999999998' fill='%23000' opacity='.35'/%3E%3Ccircle cx='100' cy='125' r='14.399999999999999' fill='url(%23c)'/%3E%3Ccircle cx='100' cy='125' r='6' fill='url(%23b)' stroke='%231b1b1b' stroke-width='.7'/%3E%3Cpolygon points='100.0,122.5 102.4,124.2 101.5,127.0 98.5,127.0 97.6,124.2' fill='%231b1b1b'/%3E%3C/svg%3E") center/100% 100% no-repeat}
 .prow{position:relative;display:flex;justify-content:space-around;align-items:flex-start}
 .pl{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:78px;text-align:center;font-size:11.5px;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.65)}
 .pl em{position:absolute;top:0;inset-inline-start:calc(50% + 12px);width:17px;height:17px;border-radius:50%;background:var(--gold);color:var(--on-gold);font-style:normal;font-size:10.5px;font-weight:700;display:grid;place-items:center;text-shadow:none}
@@ -1365,6 +1365,39 @@ textarea{min-height:96px}
 .pw-wrap{position:relative}.pw-wrap input{padding-inline-end:78px}
 .pw-toggle{position:absolute;inset-block:6px;inset-inline-end:6px;border:0;border-radius:9px;padding:0 12px;background:color-mix(in srgb,var(--accent) 20%,transparent);color:inherit;font:600 13px var(--f-body);cursor:pointer}
 .login-card .btn.primary{width:100%;min-height:46px;font-size:16px}
+
+/* ===== وضوح كتابة الصفحة الرئيسية فوق صورة الملعب ===== */
+.hero .hero-l, .hero .hero-s { text-shadow: 0 2px 12px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.5); }
+.hero .hero-s { opacity: 1; }
+.hero .hm .t > span { text-shadow: 0 2px 10px rgba(0,0,0,.65), 0 1px 2px rgba(0,0,0,.5); }
+.hero .hscore { text-shadow: 0 3px 14px rgba(0,0,0,.6); }
+/* وقت المباراة داخل بطاقة زجاجية شفافة زي العداد */
+.hero .htime {
+  display: inline-flex; align-items: baseline; justify-content: center; gap: 6px;
+  min-width: 118px; padding: 10px 18px 11px; border-radius: 18px;
+  font-size: clamp(28px, 7.4vw, 42px); line-height: 1.1; direction: ltr; white-space: nowrap;
+  background: rgba(8, 16, 36, .55);
+  border: 1px solid rgba(255, 255, 255, .30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 10px 26px rgba(0, 0, 0, .32);
+  -webkit-backdrop-filter: blur(9px) saturate(1.25); backdrop-filter: blur(9px) saturate(1.25);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+}
+.hero .htime .htime-p { font: 600 .38em/1 var(--f-body, inherit); opacity: .92; letter-spacing: 0; }
+/* التاريخ والملعب وبطاقات العداد بنفس الأسلوب */
+.hero .hinfo {
+  width: fit-content; max-width: 100%; margin: 14px auto 0; padding: 7px 16px; opacity: 1;
+  border-radius: 99px; font-weight: 500;
+  background: rgba(8, 16, 36, .46); border: 1px solid rgba(255, 255, 255, .22);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .5);
+}
+.hero .cd div {
+  background: rgba(8, 16, 36, .50); border-color: rgba(255, 255, 255, .26);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.hero .cd b, .hero .cd span { text-shadow: 0 1px 6px rgba(0, 0, 0, .5); }
+.hero .cd span { opacity: 1; }
+@media (max-width: 420px) { .hero .htime { min-width: 96px; padding: 8px 12px 9px; } .hero .hinfo { font-size: 12.5px; padding: 6px 12px; } }
 </style>
 </head>
 <body>
@@ -1899,6 +1932,10 @@ return Object.values(playerStats(S.d)).filter(x => x[key] > 0 && (!query || Stri
 .map(x => ({ player_id: x.p.id, team: S.d.teamMap[x.p.team_id], label: x.p.name, sub: tname(x.p.team_id), v: x[key], color, marker: key === 'g' ? '⚽' : key === 'a' ? 'Assist' : '' }));
 }
 function scorers(n, query = '') { return playerLeaders(n, 'g', query, '#ff4d6d'); }
+function heroTimeHTML(t) {
+const parts = fmtTime(t).split(' ');
+return `<span class="htime-n">${esc(parts[0] || '')}</span>${parts[1] ? `<small class="htime-p">${esc(parts[1])}</small>` : ''}`;
+}
 function heroHTML() {
 const d = S.d, s = d.settings, now = Date.now();
 const live = d.matches.find(m => m.status === 'live');
@@ -1914,7 +1951,7 @@ const m = live || next || last;
 const head = `<div class="hero-top"><div><div class="hero-l">${esc(s.league_name || 'الدوري المدرسي')}</div><div class="hero-s">${esc(s.school_name || '')}${s.season ? ' – موسم ' + esc(s.season) : ''}</div></div>${m ? `<span class="hero-tag ${live ? 'live' : ''}">${live ? 'مباشر الآن' : next ? 'المباراة القادمة' : 'آخر نتيجة'}</span>` : ''}</div>`;
 if (!m || !d.teamMap[m.home_id] || !d.teamMap[m.away_id]) return `<section class="hero">${head}<p class="hero-empty">ستظهر هنا المباراة القادمة والنتائج المباشرة فور إضافة جدول المباريات.</p></section>`;
 const H = d.teamMap[m.home_id], A = d.teamMap[m.away_id];
-const mid = m === next ? `<div class="htime">${m.time ? fmtTime(m.time) : '—'}</div>` : `<div class="hscore"><b>${m.hs ?? 0}</b><i>–</i><b>${m.as ?? 0}</b></div>`;
+const mid = m === next ? `<div class="htime">${m.time ? heroTimeHTML(m.time) : '—'}</div>` : `<div class="hscore"><b>${m.hs ?? 0}</b><i>–</i><b>${m.as ?? 0}</b></div>`;
 const cd = m === next && m.dt ? `<div class="cd" id="cd" data-t="${+m.dt}"><div><b data-u="d">0</b><span>يوم</span></div><div><b data-u="h">0</b><span>ساعة</span></div><div><b data-u="m">0</b><span>دقيقة</span></div><div><b data-u="s">0</b><span>ثانية</span></div></div>` : '';
 return `<section class="hero">${head}
 <button class="hm" data-match="${esc(m.id)}" aria-label="تفاصيل المباراة"><span class="t">${badge(H, 68)}<span>${esc(H.name)}</span></span>${mid}<span class="t">${badge(A, 68)}<span>${esc(A.name)}</span></span></button>
