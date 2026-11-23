@@ -1732,7 +1732,7 @@ adminSaveDisciplineCase: (t, rec) => { const arr=DB.disciplineCases||(DB.discipl
 adminGenerateFixtures: () => { throw new Error('توليد الجدول غير متاح في وضع المعاينة'); },
 adminArchiveAndStartNewSeason: (t,o) => { throw new Error('الأرشفة الحقيقية غير متاحة في وضع المعاينة'); },
 adminSaveLineup: (t, tid, form, starters, cap) => { const T = DB.teams.find(x => x.id === tid); T.formation = form || ''; DB.players.forEach(p => { if (p.team_id === tid) { p.starter = starters.includes(p.id) ? 'TRUE' : ''; p.captain = (cap === p.id && p.starter) ? 'TRUE' : ''; } }); return 1; },
-adminGenerateKnockout: (t, o) => { if (DB.matches.some(m => m.stage === o.stage)) throw new Error('توجد مباريات لهذه المرحلة بالفعل.'); let real = 0; o.pairs.forEach((p, i) => { const bye = !p[1]; if (!bye) real++; DB.matches.push({ id: 'k_' + o.stage + i, round: i + 1, stage: o.stage, date: bye ? '' : o.start, time: bye ? '' : (o.time || '12:00'), venue: bye ? '' : (o.venue || ''), home_id: p[0], away_id: p[1] || '', home_score: '', away_score: '', status: bye ? 'bye' : 'scheduled', notes: '', home_pen: '', away_pen: '', allow_voting: '' }); }); return real; },
+	adminGenerateKnockout: (t, o) => { if (DB.matches.some(m => m.stage === o.stage)) throw new Error('توجد مباريات لهذه المرحلة بالفعل.'); let real = 0; const value = Number(o.gap_value || o.slot) || 60, unit = o.gap_unit || 'minutes', gapMinutes = unit === 'hours' ? value * 60 : unit === 'days' ? value * 1440 : value; o.pairs.forEach((p, i) => { const bye = !p[1], sch = (o.schedule || [])[i] || {}; let date = sch.date || o.start || '', time = sch.time || o.time || '12:00'; if (!bye && !sch.date && date && real) { if (unit === 'days') { const x = date.split('-').map(Number); date = new Date(Date.UTC(x[0], x[1] - 1, x[2] + real * value)).toISOString().slice(0, 10); } else { const x = time.split(':').map(Number), total = x[0] * 60 + x[1] + real * gapMinutes, days = Math.floor(total / 1440), mins = total % 1440; if (days) { const y = date.split('-').map(Number); date = new Date(Date.UTC(y[0], y[1] - 1, y[2] + days)).toISOString().slice(0, 10); } time = `${pad(Math.floor(mins / 60))}:${pad(mins % 60)}`; } } if (!bye) real++; DB.matches.push({ id: 'k_' + o.stage + i, round: i + 1, stage: o.stage, date: bye ? '' : date, time: bye ? '' : time, venue: bye ? '' : (o.venue || ''), home_id: p[0], away_id: p[1] || '', home_score: '', away_score: '', status: bye ? 'bye' : 'scheduled', notes: '', home_pen: '', away_pen: '', allow_voting: '' }); }); return real; },
 adminResetKnockout: () => { const ko = ['qf', 'sf', 'third', 'final'], ids = DB.matches.filter(m => ko.includes(m.stage)).map(m => m.id); DB.matches = DB.matches.filter(m => !ids.includes(m.id)); DB.events = DB.events.filter(e => !ids.includes(e.match_id)); DB.votes = DB.votes.filter(v => !ids.includes(v.match_id)); return ids.length; },
 adminChangePassword: () => { throw new Error('تغيير كلمة السر غير متاح في وضع المعاينة'); },
 adminListUsers: () => [{ id: 'u1', username: 'yasser', role: 'superadmin', role_label: 'المدير العام', last_activity: new Date().toISOString() }],
@@ -2329,8 +2329,13 @@ if (!(S.ksize >= 3 && S.ksize <= maxN)) { const gs = groupsOf(S.d); if (gs.lengt
 return S.ksize >= 3 && S.ksize <= maxN ? S.ksize : maxN;
 }
 function koNext(size) {
-const d=S.d,fmt=String(d.settings.knockout_format||'');if(fmt==='single_elimination')return koNextSingle(size);if(fmt==='double_elimination')return koNextDouble(size);
-const k = koMatches(d), has = s => k[s].length > 0;
+const d=S.d,fmt=String(d.settings.knockout_format||'');
+const k = koMatches(d);
+// The legacy qf/sf/final tree has exactly four QF slots (up to eight qualifiers).
+// Larger fields use the already-supported multi-round single-elimination stages.
+if(fmt==='single_elimination'||(fmt!=='double_elimination'&&k.ko1.length))return koNextSingle(size);
+if(fmt==='double_elimination')return koNextDouble(size);
+const has = s => k[s].length > 0;
 if (has('final')) return { msg: 'اكتمل جدول الأدوار الإقصائية. سجّل نتائج المباريات وسيظهر البطل تلقائيًا.' };
 if (has('sf')) {
 const w = k.sf.map(winnerOf);
@@ -2345,6 +2350,7 @@ const w = k.qf.map(winnerOf);
 if (k.qf.length < 4 || w.some(x => !x)) return { msg: 'أنهِ مباريات ربع النهائي لإنشاء نصف النهائي.' };
 return { steps: [{ stage: 'sf', pairs: [[w[0], w[1]], [w[2], w[3]]] }], label: 'إنشاء نصف النهائي' };
 }
+if (size > 8) return { steps: [{ stage: 'ko1', pairs: seedPairs(size) }], label: 'إنشاء ' + (STAGE.ko1 || 'الدور الإقصائي الأول') };
 return { steps: [{ stage: size > 4 ? 'qf' : 'sf', pairs: seedPairs(size) }], label: size > 4 ? 'إنشاء ربع النهائي' : 'إنشاء نصف النهائي' };
 }
 function viewTable() {
@@ -3650,7 +3656,7 @@ else {
 const plan = koNext(sz);
 if (!plan.steps) body = `<p class="hint" style="font-size:14px;margin-top:8px">${esc(plan.msg)}</p>`;
 else {
-const G = [{ k: 'start', l: 'التاريخ العام (للمباريات التي بلا تاريخ خاص)', t: 'date' }, { k: 'time', l: 'وقت أول مباراة', t: 'time', def: '12:00' }, { k: 'slot', l: 'الفاصل بين المباريات (دقيقة)', t: 'number', def: 60 }, { k: 'venue', l: 'الملعب', def: 'ملعب المدرسة' }];
+const G = [{ k: 'start', l: 'التاريخ العام (للمباريات التي بلا تاريخ خاص)', t: 'date' }, { k: 'time', l: 'وقت أول مباراة', t: 'time', def: '12:00' }, { k: 'gap_value', l: 'قيمة الفاصل بين المباريات', t: 'number', def: 60, hint: 'الدقائق: 1–1440، الساعات: 1–168، الأيام: 1–60.' }, { k: 'gap_unit', l: 'وحدة الفاصل', t: 'select', def: 'minutes', opts: () => [['minutes', 'دقائق'], ['hours', 'ساعات'], ['days', 'أيام']] }, { k: 'venue', l: 'الملعب', def: 'ملعب المدرسة' }];
 let opts = ''; for (let n = maxN; n >= 3; n--) { const by = Math.pow(2,Math.ceil(Math.log(n)/Math.LN2))-n; opts += `<option value="${n}"${n === sz ? ' selected' : ''}>${n} فريق${by ? ` (إعفاء ${by})` : ''}</option>`; }
 const sel = !started ? `<div class="fld"><label for="k_size">عدد الفرق المتأهلة</label><select id="k_size">${opts}</select></div>` : '';
 const list = plan.steps.map(s => `<li><b>${STAGE[s.stage]}:</b> ${s.pairs.map(p => p[1] ? `${esc(tname(p[0]))} × ${esc(tname(p[1]))}` : `${esc(tname(p[0]))} (إعفاء)`).join(' ، ')}</li>`).join('');
@@ -4313,16 +4319,24 @@ S.atab = 'matches'; await refresh(); toast(`تم إنشاء ${n} مباراة${o
 }
 if (id === 'archiveSeasonForm') { const current=String(S.d.settings.league_name||'الدوري الحالي'); const confirmText=$('#archive_confirm',f).value.trim(); if(confirmText!==current) throw new Error('اسم الدوري غير مطابق'); if(!await confirmBox(`سيتم حفظ أرشيف خاص للموسم الحالي ثم مسح الفرق واللاعبين والمباريات والأحداث والأخبار والتصويت والعقوبات والآراء، مع الإبقاء على الطلاب والمسؤولين. بدء ${$('#archive_new_season',f).value.trim()}؟`,'أرشفة وبدء الموسم')) throw new Error('تم الإلغاء'); const raw=await adminCall('adminArchiveAndStartNewSeason',{new_name:$('#archive_new_name',f).value.trim(),new_season:$('#archive_new_season',f).value.trim(),confirm_text:confirmText}); const result=typeof raw==='string'?JSON.parse(raw):raw; await refresh(); S.atab='league'; render(); toast(`تم حفظ الأرشيف ${result.name} في مجلد Drive: ${result.folderName}، وبدء الموسم ${result.season}`); if(result.url) window.open(result.url,'_blank','noopener'); }
 if (id === 'kof') {
-const o = readFields([{ k: 'start' }, { k: 'time' }, { k: 'slot' }, { k: 'venue' }], f, 'k_');
+const o = readFields([{ k: 'start' }, { k: 'time' }, { k: 'gap_value' }, { k: 'gap_unit' }, { k: 'venue' }], f, 'k_');
 const plan = koNext(koSize());
 if (!plan.steps) throw new Error(plan.msg || 'غير جاهز بعد');
-let n = 0, tm = o.time || '12:00'; const slot = Number(o.slot) || 60;
+const unit = o.gap_unit || 'minutes', gapValue = Number(o.gap_value);
+const maxGap = unit === 'minutes' ? 1440 : unit === 'hours' ? 168 : unit === 'days' ? 60 : 0;
+if (!Number.isInteger(gapValue) || gapValue < 1 || gapValue > maxGap) throw new Error('أدخل فاصلًا صحيحًا ضمن الحد المسموح للوحدة المختارة');
+const gapMinutes = unit === 'minutes' ? gapValue : unit === 'hours' ? gapValue * 60 : gapValue * 1440;
+const addDateDays = (date, days) => { if (!date) return ''; const p = date.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2] + days)).toISOString().slice(0, 10); };
+const advance = (date, time) => { if (unit === 'days') return { date: addDateDays(date, gapValue), time }; const p = (time || '12:00').split(':').map(Number), total = p[0] * 60 + p[1] + gapMinutes, nextDate = addDateDays(date, Math.floor(total / 1440)), mins = total % 1440; return { date: nextDate, time: `${pad(Math.floor(mins / 60))}:${pad(mins % 60)}` }; };
+let n = 0, tm = o.time || '12:00', stageStart = o.start || ''; const warnings = [];
 for (const st of plan.steps) {
 const schedule = st.pairs.map((p, i) => ({ date: $('#k_d_' + st.stage + '_' + i, f)?.value || '', time: $('#k_t_' + st.stage + '_' + i, f)?.value || '' }));
 st.pairs.forEach((p, i) => { if (p[1] && !schedule[i].date && !o.start) throw new Error('حدد تاريخ كل مباراة أو التاريخ العام'); });
-n += await adminCall('adminGenerateKnockout', { stage: st.stage, pairs: st.pairs, schedule, start: o.start || '', time: tm, slot, venue: o.venue }); tm = addMin(tm, slot);
+const result = await adminCall('adminGenerateKnockout', { stage: st.stage, pairs: st.pairs, schedule, start: stageStart, time: tm, slot: gapMinutes, gap_value: gapValue, gap_unit: unit, venue: o.venue, size: koSize(), format: koSize() > 8 ? 'single_elimination' : '' });
+if (result && typeof result === 'object') { n += Number(result.count) || 0; if (result.warning) warnings.push(result.warning); } else n += Number(result) || 0;
+const next = advance(stageStart, tm); stageStart = next.date; tm = next.time;
 }
-S.atab = 'matches'; await refresh(); toast(`تم إنشاء ${n} مباراة`);
+S.atab = 'matches'; await refresh(); toast(`تم إنشاء ${n} مباراة`); [...new Set(warnings)].forEach(w => toast('تنبيه: ' + w, 'err'));
 }
 if (id === 'pwf') {
 const a = $('#p_old').value, b = $('#p_new').value; await adminCall('adminChangePassword', a, b); f.reset(); toast('تم تغيير كلمة السر');
